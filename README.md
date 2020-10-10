@@ -30,9 +30,7 @@ Install packages: `python3 setup.py install`
 
 For **setting up datasets**, see [datasets](sasegan/datasets/README.md)
 
-- For _testing_ **Speech Enhancement Model** (i.e SEGAN), install `octave` and run `./scripts/install_semetrics.sh`
-
-- To enable XLA, run `TF_XLA_FLAGS=--tf_xla_auto_jit=2 $python_train_script`
+To enable XLA, run `TF_XLA_FLAGS=--tf_xla_auto_jit=2 $python_train_script`
 
 Clean up: `python3 setup.py clean --all` (this will remove `/build` contents)
 
@@ -61,6 +59,6 @@ learning_config:
 
 See [examples](./examples/) for some predefined ASR models.
 
-## References & Credits
+## References
 
 1. [https://github.com/santi-pdp/segan](https://github.com/santi-pdp/segan)
