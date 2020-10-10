@@ -46,10 +46,10 @@ tf.config.optimizer.set_experimental_options({"auto_mixed_precision": args.mxp})
 
 strategy = setup_strategy(args.devices)
 
-from tiramisu_asr.runners.segan_runners import SeganTrainer
-from tiramisu_asr.datasets.segan_dataset import SeganTrainDataset
+from sasegan.runners.trainer import SeganTrainer
+from sasegan.datasets.segan_dataset import SeganTrainDataset
 from tiramisu_asr.configs.user_config import UserConfig
-from tiramisu_asr.models.sasegan import Generator, Discriminator
+from sasegan.models.sasegan import Generator, Discriminator
 
 config = UserConfig(DEFAULT_YAML, args.config, learning=True)
 

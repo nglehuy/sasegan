@@ -18,7 +18,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 requirements = [
-    "tiramisu-asr>=0.1.9",
+    "tiramisu-asr>=0.2.3",
     "tensorflow>=2.3.0",
     "tensorflow-addons>=0.10.0",
     "setuptools>=47.1.1",
@@ -32,26 +32,27 @@ requirements = [
     "numba==0.49.1",
     "tqdm>=4.47.0",
     "colorama>=0.4.3",
-    "nlpaug>=0.0.14"
+    "nlpaug>=1.0.1"
 ]
 
 setuptools.setup(
-    name="tiramisu-se",
-    version="0.0.1",
+    name="sasegan",
+    version="0.1.0",
     author="Huy Le Nguyen",
     author_email="nlhuy.cs.16@gmail.com",
-    description="Speech Enhancement using Tensorflow 2",
+    description="Self Attention Speech Enhancement Generative Adversarial Network using Tensorflow 2",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/usimarit/TiramisuSE",
-    packages=setuptools.find_packages(include=["tiramisu_se*"]),
+    url="https://github.com/usimarit/selfattention-segan",
+    packages=setuptools.find_packages(include=["sasegan*"]),
     install_requires=requirements,
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Intended Audience :: Science/Research",
         "Operating System :: POSIX :: Linux",
-        "License :: OSI Approved :: Apache-2.0 License",
+        "License :: OSI Approved :: Apache Software License",
         "Topic :: Software Development :: Libraries :: Python Modules"
     ],
     python_requires='>=3.6',

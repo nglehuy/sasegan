@@ -1,8 +1,8 @@
 <h1 align="center">
-<p>TiramisuSE :cake:</p>
+<p>SASEGAN</p>
 <p align="center">
-<a href="https://github.com/usimarit/TiramisuSE/blob/master/LICENSE">
-  <img alt="GitHub" src="https://img.shields.io/github/license/usimarit/TiramisuSE?style=for-the-badge&logo=apache">
+<a href="https://github.com/usimarit/selfattention-segan/blob/master/LICENSE">
+  <img alt="GitHub" src="https://img.shields.io/github/license/usimarit/selfattention-segan?style=for-the-badge&logo=apache">
 </a>
 <img alt="python" src="https://img.shields.io/badge/python-%3E%3D3.6-blue?style=for-the-badge&logo=python">
 <img alt="tensorflow" src="https://img.shields.io/badge/tensorflow-%3E%3D2.3.0-orange?style=for-the-badge&logo=tensorflow">
@@ -10,12 +10,8 @@
 </p>
 </h1>
 <h2 align="center">
-<p>The Newest Speech Enhancement in Tensorflow 2</p>
+<p>Self Attention Speech Enhancement GAN in Tensorflow 2</p>
 </h2>
-
-<p align="center">
-TiramisuSE implements some speech enhancement architectures such as Speech Enhancement Generative Adversarial Network (SEGAN). These models can be converted to TFLite to reduce memory and computation for deployment :smile:
-</p>
 
 ## What's New?
 
@@ -24,12 +20,7 @@ TiramisuSE implements some speech enhancement architectures such as Speech Enhan
 ## :yum: Supported Models
 
 - **SEGAN** (Refer to [https://github.com/santi-pdp/segan](https://github.com/santi-pdp/segan)), see [examples/segan](./examples/segan)
-
-## Requirements
-
-- Ubuntu distribution (`ctc-decoders` and `semetrics` require some packages from apt)
-- Python 3.6+
-- Tensorflow 2.2+: `pip install tensorflow`
+- **SASEGAN**, see [examples/sasegan](./examples/sasegan)
 
 ## Setup Environment and Datasets
 
@@ -37,7 +28,7 @@ Install tensorflow: `pip3 install tensorflow` or `pip3 install tf-nightly` (for 
 
 Install packages: `python3 setup.py install`
 
-For **setting up datasets**, see [datasets](./tiramisu_se/datasets/README.md)
+For **setting up datasets**, see [datasets](sasegan/datasets/README.md)
 
 - For _testing_ **Speech Enhancement Model** (i.e SEGAN), install `octave` and run `./scripts/install_semetrics.sh`
 

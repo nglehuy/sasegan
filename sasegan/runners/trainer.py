@@ -11,17 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import os
 from tqdm import tqdm
 from colorama import Fore
 
-import numpy as np
-import soundfile as sf
 import tensorflow as tf
 
-from tiramisu_asr.featurizers.speech_featurizers import deemphasis, tf_merge_slices, read_raw_audio
 from ..losses.segan_losses import generator_loss, discriminator_loss
-from tiramisu_asr.runners.base_runners import BaseTrainer, BaseTester
+from tiramisu_asr.runners.base_runners import BaseTrainer
 from tiramisu_asr.utils.utils import shape_list
 
 
@@ -170,129 +168,3 @@ class SeganTrainer(BaseTrainer):
             max_to_keep, generator=self.generator, gen_optimizer=self.generator_optimizer,
             discriminator=self.discriminator, disc_optimizer=self.discriminator_optimizer
         )
-
-
-class SeganTester(BaseTester):
-    def __init__(self,
-                 speech_config: dict,
-                 config: dict):
-        super(SeganTester, self).__init__(config)
-        self.speech_config = speech_config
-        try:
-            from semetrics import composite
-            self.composite = composite
-        except ImportError as e:
-            print(
-                f"Error: {e}\nPlease run ./scripts/install_semetrics.sh")
-            return
-        self.test_noisy_dir = os.path.join(self.config["outdir"], "test", "noisy")
-        self.test_gen_dir = os.path.join(self.config["outdir"], "test", "gen")
-        if not os.path.exists(self.test_noisy_dir): os.makedirs(self.test_noisy_dir)
-        if not os.path.exists(self.test_gen_dir): os.makedirs(self.test_gen_dir)
-        self.test_results = os.path.join(self.config["outdir"], "test", "results.txt")
-        self.test_metrics = {
-            "g_pesq": tf.keras.metrics.Mean("test_pesq", dtype=tf.float32),
-            "g_csig": tf.keras.metrics.Mean("test_csig", dtype=tf.float32),
-            "g_cbak": tf.keras.metrics.Mean("test_cbak", dtype=tf.float32),
-            "g_covl": tf.keras.metrics.Mean("test_covl", dtype=tf.float32),
-            "g_ssnr": tf.keras.metrics.Mean("test_ssnr", dtype=tf.float32),
-            "n_pesq": tf.keras.metrics.Mean("test_noise_pesq", dtype=tf.float32),
-            "n_csig": tf.keras.metrics.Mean("test_noise_csig", dtype=tf.float32),
-            "n_cbak": tf.keras.metrics.Mean("test_noise_cbak", dtype=tf.float32),
-            "n_covl": tf.keras.metrics.Mean("test_noise_covl", dtype=tf.float32),
-            "n_ssnr": tf.keras.metrics.Mean("test_noise_ssnr", dtype=tf.float32)
-        }
-
-    def set_test_data_loader(self, test_dataset):
-        """Set train data loader (MUST)."""
-        self.clean_dir = test_dataset.clean_dir
-        self.test_data_loader = test_dataset.create()
-
-    def _test_epoch(self):
-        if self.processed_records > 0:
-            self.test_data_loader = self.test_data_loader.skip(self.processed_records)
-        progbar = tqdm(initial=self.processed_records, total=None,
-                       unit="batch", position=0, desc="[Test]")
-        test_iter = iter(self.test_data_loader)
-        while True:
-            try:
-                self._test_function(test_iter)
-            except StopIteration:
-                break
-            except tf.errors.OutOfRangeError:
-                break
-            progbar.update(1)
-
-        progbar.close()
-
-    @tf.function
-    def _test_function(self, iterator):
-        batch = next(iterator)
-        self._test_step(batch)
-
-    def _test_step(self, batch):
-        # Test only available for batch size = 1
-        clean_wav_path, noisy_wavs = batch
-        g_wavs = self.model([noisy_wavs, self.model.get_z(shape_list(noisy_wavs)[0])],
-                            training=False)
-
-        results = tf.numpy_function(
-            self._perform, inp=[clean_wav_path, tf_merge_slices(g_wavs),
-                                tf_merge_slices(noisy_wavs)],
-            Tout=tf.float32
-        )
-
-        for idx, key in enumerate(self.test_metrics.keys()):
-            self.test_metrics[key].update_state(results[idx])
-
-    def _perform(self,
-                 clean_wav_path: bytes,
-                 gen_signal: np.ndarray,
-                 noisy_signal: np.ndarray) -> tf.Tensor:
-        clean_wav_path = clean_wav_path.decode("utf-8")
-        results = self._compare(clean_wav_path, gen_signal, noisy_signal)
-        return tf.convert_to_tensor(results, dtype=tf.float32)
-
-    def _save_to_outdir(self,
-                        clean_wav_path: str,
-                        gen_signal: np.ndarray,
-                        noisy_signal: np.ndarray):
-        gen_path = clean_wav_path.replace(self.clean_dir, self.test_gen_dir)
-        noisy_path = clean_wav_path.replace(self.clean_dir, self.test_noisy_dir)
-        try:
-            os.makedirs(os.path.dirname(gen_path))
-            os.makedirs(os.path.dirname(noisy_path))
-        except Exception:
-            pass
-        # Avoid differences by writing original wav using sf
-        clean_wav = read_raw_audio(clean_wav_path, self.speech_config["sample_rate"])
-        sf.write("/tmp/clean.wav", clean_wav, self.speech_config["sample_rate"])
-        sf.write(gen_path,
-                 gen_signal,
-                 self.speech_config["sample_rate"])
-        sf.write(noisy_path,
-                 noisy_signal,
-                 self.speech_config["sample_rate"])
-        return gen_path, noisy_path
-
-    def _compare(self,
-                 clean_wav_path: str,
-                 gen_signal: np.ndarray,
-                 noisy_signal: np.ndarray) -> list:
-        gen_signal = deemphasis(gen_signal, self.speech_config["preemphasis"])
-        noisy_signal = deemphasis(noisy_signal, self.speech_config["preemphasis"])
-
-        gen_path, noisy_path = self._save_to_outdir(clean_wav_path, gen_signal, noisy_signal)
-
-        (pesq_gen, csig_gen, cbak_gen,
-         covl_gen, ssnr_gen) = self.composite("/tmp/clean.wav", gen_path)
-        (pesq_noisy, csig_noisy, cbak_noisy,
-         covl_noisy, ssnr_noisy) = self.composite("/tmp/clean.wav", noisy_path)
-
-        return [pesq_gen, csig_gen, cbak_gen, covl_gen, ssnr_gen,
-                pesq_noisy, csig_noisy, cbak_noisy, covl_noisy, ssnr_noisy]
-
-    def finish(self):
-        with open(self.test_results, "w", encoding="utf-8") as out:
-            for idx, key in enumerate(self.test_metrics.keys()):
-                out.write(f"{key} = {self.test_metrics[key].result().numpy():.2f}\n")
