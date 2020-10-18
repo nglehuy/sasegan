@@ -14,8 +14,9 @@
 
 import tensorflow as tf
 
+from . import Model
 from .segan import VirtualBatchNorm, GaussianNoise, Reshape1to3, Reshape3to1, SeganPrelu
-from tiramisu_asr.utils.utils import shape_list
+from tensorflow_asr.utils.utils import shape_list
 
 
 def l2_normalize(v, eps=1e-12):
@@ -320,7 +321,7 @@ class GeneratorDecoder(tf.keras.Model):
         return conf
 
 
-class Generator(tf.keras.Model):
+class Generator(Model):
     def __init__(self,
                  g_enc_depths,
                  window_size,
@@ -378,6 +379,16 @@ class Generator(tf.keras.Model):
         outputs = self.outp(outputs)
         return outputs
 
+    def add_featurizer(self, speech_featurizer):
+        self.speech_featurizer = speech_featurizer
+
+    def predict(self, signal, z):
+        slices = self.speech_featurizer.extract(signal)
+        z_slices = tf.repeat(tf.expand_dims(z, axis=0), tf.shape(slices)[0], axis=0)
+        outputs = self([slices, z_slices], training=False)
+        output_signal = self.speech_featurizer.iextract(outputs)
+        return output_signal
+
     def get_config(self):
         conf = self.inp.get_config()
         conf.update(self.encoder.get_config())
@@ -385,6 +396,15 @@ class Generator(tf.keras.Model):
         conf.update(self.decoder.get_config())
         conf.update(self.out.get_config())
         return conf
+
+    def make_tflite_function(self):
+        return tf.function(
+            self.predict,
+            input_signature=[
+                tf.TensorSpec([None], dtype=tf.float32),
+                tf.TensorSpec(self._get_z_shape(1), dtype=tf.float32)
+            ]
+        )
 
 
 class DiscriminatorBlock(tf.keras.layers.Layer):
@@ -409,7 +429,7 @@ class DiscriminatorBlock(tf.keras.layers.Layer):
         return self.relu(outputs, training=training)
 
 
-class Discriminator(tf.keras.Model):
+class Discriminator(Model):
     def __init__(self,
                  g_enc_depths,
                  window_size,
