@@ -13,14 +13,14 @@
 <p>Self Attention Speech Enhancement GAN in Tensorflow 2</p>
 </h2>
 
-## What's New?
-
-- Moved from [TiramisuASR](https://github.com/usimarit/TiramisuASR)
+<p align="center">
+This is the TensorFlow 2 Version of Self-Attention Generative Adversarial Network for Speech Enhancement. These models can be converted to TFLite :smile:
+</p>
 
 ## :yum: Supported Models
 
 - **SEGAN** (Refer to [https://github.com/santi-pdp/segan](https://github.com/santi-pdp/segan)), see [examples/segan](./examples/segan)
-- **SASEGAN**, see [examples/sasegan](./examples/sasegan)
+- **SASEGAN** (Refer to [https://github.com/pquochuy/selfattention-segan](https://github.com/pquochuy/selfattention-segan)), see [examples/sasegan](./examples/sasegan)
 
 ## Setup Environment and Datasets
 
