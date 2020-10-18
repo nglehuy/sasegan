@@ -13,7 +13,7 @@
 # limitations under the License.
 import os
 import argparse
-from tiramisu_asr.utils import setup_environment, setup_devices
+from tensorflow_asr.utils import setup_environment, setup_devices
 
 setup_environment()
 import tensorflow as tf
@@ -31,6 +31,9 @@ parser.add_argument("--saved", type=str, default=None,
 parser.add_argument("--mxp", default=False, action="store_true",
                     help="Enable mixed precision")
 
+parser.add_argument("--nfx", default=False, action="store_true",
+                    help="Choose numpy feature extractor")
+
 parser.add_argument("--device", type=int, default=0,
                     help="Device's id to run test on")
 
@@ -41,19 +44,23 @@ tf.config.optimizer.set_experimental_options({"auto_mixed_precision": args.mxp})
 setup_devices([args.device])
 
 from sasegan.runners.tester import SeganTester
-from sasegan.datasets.segan_dataset import SeganAugTestDataset
-from tiramisu_asr.configs.user_config import UserConfig
+from sasegan.datasets.test_dataset import SeganAugTestDataset
+from tensorflow_asr.configs.user_config import UserConfig
 from sasegan.models.segan import Generator
+from sasegan.featurizers.speech_featurizer import NumpySpeechFeaturizer, TFSpeechFeaturizer
 
 config = UserConfig(DEFAULT_YAML, args.config, learning=True)
+
+speech_featurizer = NumpySpeechFeaturizer(config["speech_config"]) if args.nfx \
+    else TFSpeechFeaturizer(config["speech_config"])
 
 tf.random.set_seed(0)
 assert args.saved
 
 dataset = SeganAugTestDataset(
+    speech_featurizer=speech_featurizer,
     clean_dir=config["learning_config"]["dataset_config"]["test_paths"],
-    noises_config=config["learning_config"]["dataset_config"]["noise_config"],
-    speech_config=config["speech_config"]
+    noises_config=config["learning_config"]["dataset_config"]["noise_config"]
 )
 
 generator = Generator(
@@ -62,10 +69,9 @@ generator = Generator(
 )
 generator._build()
 generator.load_weights(args.saved, by_name=True)
-generator.summary(line_length=150)
+generator.summary(line_length=100)
 
-segan_tester = SeganTester(config["speech_config"],
-                           config["learning_config"]["running_config"])
+segan_tester = SeganTester(config["learning_config"]["running_config"])
 
 segan_tester.compile(generator)
 segan_tester.run(dataset)

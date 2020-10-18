@@ -1,4 +1,3 @@
-
 # Copyright 2020 Huy Le Nguyen (@usimarit)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,41 +14,42 @@
 
 import tensorflow as tf
 
+from tensorflow_asr.featurizers.speech_featurizers import read_raw_audio
+
 from .train_dataset import SeganAugTrainDataset, SeganTrainDataset
-from tiramisu_asr.featurizers.speech_featurizers import preemphasis
-from tiramisu_asr.featurizers.speech_featurizers import read_raw_audio, slice_signal
+from ..featurizers.speech_featurizer import SpeechFeaturizer
 
 
 class SeganAugTestDataset(SeganAugTrainDataset):
     def __init__(self,
+                 speech_featurizer: SpeechFeaturizer,
                  clean_dir: str,
-                 noises_config: dict,
-                 speech_config: dict):
+                 noises_config: dict):
         super(SeganAugTestDataset, self).__init__(
-            "test", clean_dir, noises_config, speech_config)
+            "test", speech_featurizer, clean_dir, noises_config)
 
     def parse(self, clean_wav):
         noisy_wav = self.noises.augment(clean_wav)
-        noisy_wav = preemphasis(noisy_wav, self.speech_config["preemphasis"])
-        noisy_slices = slice_signal(noisy_wav, self.speech_config["window_size"], 1)
-        return noisy_slices
+        noisy_slices = self.speech_featurizer.extract(noisy_wav)
+        clean_slices = self.speech_featurizer.extract(clean_wav)
+        return clean_slices, noisy_slices
 
     def create(self):
         def _gen_data():
             for clean_wav_path in self.data_paths:
                 clean_wav = read_raw_audio(
                     clean_wav_path, sample_rate=self.speech_config["sample_rate"])
-                noisy_slices = self.parse(clean_wav)
-                yield (
-                    clean_wav_path,
-                    noisy_slices
-                )
+                clean_slices, noisy_slices = self.parse(clean_wav)
+                yield clean_wav_path, clean_slices, noisy_slices
 
         dataset = tf.data.Dataset.from_generator(
             _gen_data,
             output_types=(tf.string, tf.float32),
-            output_shapes=(tf.TensorShape([]),
-                           tf.TensorShape([None, self.speech_config["window_size"]]))
+            output_shapes=(
+                tf.TensorShape([]),
+                tf.TensorShape([None, *self.speech_featurizer.shape]),
+                tf.TensorShape([None, *self.speech_featurizer.shape])
+            )
         )
         # Prefetch to improve speed of input length
         dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
@@ -58,34 +58,35 @@ class SeganAugTestDataset(SeganAugTrainDataset):
 
 class SeganTestDataset(SeganTrainDataset):
     def __init__(self,
+                 speech_featurizer: SpeechFeaturizer,
                  clean_dir: str,
-                 noisy_dir: str,
-                 speech_config: dict):
-        super(SeganTestDataset, self).__init__(
-            "test", clean_dir, noisy_dir, speech_config)
+                 noisy_dir: str):
+        super(SeganTestDataset, self).__init__("test", speech_featurizer, clean_dir, noisy_dir)
 
-    def parse(self, noisy_wav):
-        noisy_wav = preemphasis(noisy_wav, self.speech_config["preemphasis"])
-        noisy_slices = slice_signal(noisy_wav, self.speech_config["window_size"], 1)
-        return noisy_slices
+    def parse(self, clean_wav, noisy_wav):
+        clean_slices = self.speech_featurizer.extract(clean_wav)
+        noisy_slices = self.speech_featurizer.extract(noisy_wav)
+        return clean_slices, noisy_slices
 
     def create(self):
         def _gen_data():
             for clean_wav_path in self.data_paths:
+                clean_wav = read_raw_audio(clean_wav_path,
+                                           sample_rate=self.speech_config["sample_rate"])
                 noisy_wav_path = clean_wav_path.replace(self.clean_dir, self.noisy_dir)
                 noisy_wav = read_raw_audio(noisy_wav_path,
                                            sample_rate=self.speech_config["sample_rate"])
-                noisy_slices = self.parse(noisy_wav)
-                yield (
-                    clean_wav_path,
-                    noisy_slices
-                )
+                clean_slices, noisy_slices = self.parse(clean_wav, noisy_wav)
+                yield clean_wav_path, clean_slices, noisy_slices
 
         dataset = tf.data.Dataset.from_generator(
             _gen_data,
             output_types=(tf.string, tf.float32),
-            output_shapes=(tf.TensorShape([]),
-                           tf.TensorShape([None, self.speech_config["window_size"]]))
+            output_shapes=(
+                tf.TensorShape([]),
+                tf.TensorShape([None, *self.speech_featurizer.shape]),
+                tf.TensorShape([None, *self.speech_featurizer.shape])
+            )
         )
         # Prefetch to improve speed of input length
         dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)

@@ -19,8 +19,8 @@ from colorama import Fore
 import tensorflow as tf
 
 from ..losses.segan_losses import generator_loss, discriminator_loss
-from tiramisu_asr.runners.base_runners import BaseTrainer
-from tiramisu_asr.utils.utils import shape_list
+from tensorflow_asr.runners.base_runners import BaseTrainer
+from tensorflow_asr.utils.utils import shape_list
 
 
 class SeganTrainer(BaseTrainer):

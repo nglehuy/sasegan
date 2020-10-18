@@ -17,11 +17,12 @@ import os
 
 import tensorflow as tf
 
-from tiramisu_asr.augmentations.augments import SignalNoise
-from tiramisu_asr.datasets.base_dataset import BaseDataset
-from tiramisu_asr.featurizers.speech_featurizers import preemphasis
-from tiramisu_asr.featurizers.speech_featurizers import read_raw_audio, slice_signal
-from tiramisu_asr.utils.utils import preprocess_paths
+from tensorflow_asr.augmentations.augments import SignalNoise
+from tensorflow_asr.datasets.base_dataset import BaseDataset
+from tensorflow_asr.featurizers.speech_featurizers import read_raw_audio
+from tensorflow_asr.utils.utils import preprocess_paths
+
+from ..featurizers.speech_featurizer import SpeechFeaturizer
 
 
 def merge_dirs(paths: list):
@@ -34,29 +35,22 @@ def merge_dirs(paths: list):
 class SeganAugTrainDataset(BaseDataset):
     def __init__(self,
                  stage: str,
+                 speech_featurizer: SpeechFeaturizer,
                  clean_dir: str,
                  noises_config: dict,
-                 speech_config: dict,
                  cache: bool = False,
                  shuffle: bool = False):
+        self.speech_featurizer = speech_featurizer
         self.clean_dir = preprocess_paths(clean_dir)
         self.noises = SignalNoise() if noises_config is None else SignalNoise(**noises_config)
-        self.speech_config = speech_config
         super(SeganAugTrainDataset, self).__init__(
             merge_dirs([self.clean_dir]), None, cache, shuffle, stage)
 
     def parse(self, clean_wav):
         noisy_wav = self.noises.augment(clean_wav)
 
-        clean_wav = preemphasis(clean_wav, self.speech_config["preemphasis"])
-        noisy_wav = preemphasis(noisy_wav, self.speech_config["preemphasis"])
-
-        clean_slices = slice_signal(clean_wav,
-                                    self.speech_config["window_size"],
-                                    self.speech_config["stride"])
-        noisy_slices = slice_signal(noisy_wav,
-                                    self.speech_config["window_size"],
-                                    self.speech_config["stride"])
+        clean_slices = self.speech_featurizer.extract(clean_wav)
+        noisy_slices = self.speech_featurizer.extract(noisy_wav)
 
         return clean_slices, noisy_slices
 
@@ -76,8 +70,8 @@ class SeganAugTrainDataset(BaseDataset):
                 tf.float32
             ),
             output_shapes=(
-                tf.TensorShape([self.speech_config["window_size"]]),
-                tf.TensorShape([self.speech_config["window_size"]])
+                tf.TensorShape(self.speech_featurizer.shape),
+                tf.TensorShape(self.speech_featurizer.shape)
             )
         )
 
@@ -96,26 +90,20 @@ class SeganAugTrainDataset(BaseDataset):
 class SeganTrainDataset(BaseDataset):
     def __init__(self,
                  stage: str,
+                 speech_featurizer: SpeechFeaturizer,
                  clean_dir: str,
                  noisy_dir: str,
-                 speech_config: dict,
                  cache: bool = False,
                  shuffle: bool = False):
-        self.speech_config = speech_config
+        self.speech_featurizer = speech_featurizer
         self.clean_dir = preprocess_paths(clean_dir)
         self.noisy_dir = preprocess_paths(noisy_dir)
         super(SeganTrainDataset, self).__init__(
             merge_dirs([self.clean_dir]), None, cache, shuffle, stage)
 
     def parse(self, clean_wav, noisy_wav):
-        clean_wav = preemphasis(clean_wav, self.speech_config["preemphasis"])
-        noisy_wav = preemphasis(noisy_wav, self.speech_config["preemphasis"])
-        clean_slices = slice_signal(clean_wav,
-                                    self.speech_config["window_size"],
-                                    self.speech_config["stride"])
-        noisy_slices = slice_signal(noisy_wav,
-                                    self.speech_config["window_size"],
-                                    self.speech_config["stride"])
+        clean_slices = self.speech_featurizer.extract(clean_wav)
+        noisy_slices = self.speech_featurizer.extract(noisy_wav)
         return clean_slices, noisy_slices
 
     def create(self, batch_size):
@@ -137,8 +125,8 @@ class SeganTrainDataset(BaseDataset):
                 tf.float32
             ),
             output_shapes=(
-                tf.TensorShape([self.speech_config["window_size"]]),
-                tf.TensorShape([self.speech_config["window_size"]])
+                tf.TensorShape(self.speech_featurizer.shape),
+                tf.TensorShape(self.speech_featurizer.shape)
             )
         )
 

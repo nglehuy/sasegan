@@ -18,7 +18,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 requirements = [
-    "tiramisu-asr>=0.2.3",
+    "TensorFlowASR>=0.2.6",
     "tensorflow>=2.3.0",
     "tensorflow-addons>=0.10.0",
     "setuptools>=47.1.1",
@@ -37,10 +37,10 @@ requirements = [
 
 setuptools.setup(
     name="sasegan",
-    version="0.1.0",
-    author="Huy Le Nguyen",
+    version="0.1.1",
+    author="Huy Le Nguyen, Huy Phan",
     author_email="nlhuy.cs.16@gmail.com",
-    description="Self Attention Speech Enhancement Generative Adversarial Network using Tensorflow 2",
+    description="Self Attention Speech Enhancement GAN using Tensorflow 2",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/usimarit/selfattention-segan",

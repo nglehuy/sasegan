@@ -13,7 +13,7 @@
 # limitations under the License.
 import os
 import argparse
-from tiramisu_asr.utils import setup_environment, setup_strategy
+from tensorflow_asr.utils import setup_environment, setup_strategy
 
 setup_environment()
 import tensorflow as tf
@@ -37,6 +37,9 @@ parser.add_argument("--devices", type=int, nargs="*", default=[0],
 parser.add_argument("--mxp", default=False, action="store_true",
                     help="Enable mixed precision")
 
+parser.add_argument("--nfx", default=False, action="store_true",
+                    help="Choose numpy feature extractor")
+
 parser.add_argument("--cache", default=False, action="store_true",
                     help="Enable caching for dataset")
 
@@ -47,18 +50,21 @@ tf.config.optimizer.set_experimental_options({"auto_mixed_precision": args.mxp})
 strategy = setup_strategy(args.devices)
 
 from sasegan.runners.trainer import SeganTrainer
-from sasegan.datasets.segan_dataset import SeganAugTrainDataset
-from tiramisu_asr.configs.user_config import UserConfig
+from sasegan.datasets.train_dataset import SeganAugTrainDataset
+from tensorflow_asr.configs.user_config import UserConfig
 from sasegan.models.segan import Generator, Discriminator
+from sasegan.featurizers.speech_featurizer import NumpySpeechFeaturizer, TFSpeechFeaturizer
 
 config = UserConfig(DEFAULT_YAML, args.config, learning=True)
 
-tf.random.set_seed(2020)
+speech_featurizer = NumpySpeechFeaturizer(config["speech_config"]) if args.nfx \
+    else TFSpeechFeaturizer(config["speech_config"])
 
 dataset = SeganAugTrainDataset(
-    stage="train", clean_dir=config["learning_config"]["dataset_config"]["train_paths"],
+    stage="train", speech_featurizer=speech_featurizer,
+    clean_dir=config["learning_config"]["dataset_config"]["train_paths"],
     noises_config=config["learning_config"]["dataset_config"]["noise_config"],
-    speech_config=config["speech_config"], cache=args.cache, shuffle=True
+    cache=args.cache, shuffle=True
 )
 
 segan_trainer = SeganTrainer(config["learning_config"]["running_config"])
@@ -75,7 +81,7 @@ with segan_trainer.strategy.scope():
         **config["model_config"]
     )
     discriminator._build()
-    discriminator.summary(line_length=150)
+    discriminator.summary(line_length=100)
 
 segan_trainer.compile(generator, discriminator,
                       config["learning_config"]["optimizer_config"],
