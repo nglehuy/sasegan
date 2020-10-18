@@ -18,7 +18,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 requirements = [
-    "TensorFlowASR>=0.2.6",
+    "TensorFlowASR>=0.2.7",
     "tensorflow>=2.3.0",
     "tensorflow-addons>=0.10.0",
     "setuptools>=47.1.1",
