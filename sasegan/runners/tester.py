@@ -30,9 +30,9 @@ class SeganTester(BaseTester):
         super(SeganTester, self).__init__(config)
         self.speech_featurizer = speech_featurizer
 
-        self.test_noisy_dir = os.path.join(self.config["outdir"], "test", "noisy")
-        self.test_gen_dir = os.path.join(self.config["outdir"], "test", "gen")
-        self.test_clean_dir = os.path.join(self.config["outdir"], "test", "clean")
+        self.test_noisy_dir = os.path.join(self.config.outdir, "test", "noisy")
+        self.test_gen_dir = os.path.join(self.config.outdir, "test", "gen")
+        self.test_clean_dir = os.path.join(self.config.outdir, "test", "clean")
 
         if not os.path.exists(self.test_clean_dir): os.makedirs(self.test_clean_dir)
         if not os.path.exists(self.test_gen_dir): os.makedirs(self.test_gen_dir)
@@ -42,6 +42,11 @@ class SeganTester(BaseTester):
         """Set train data loader (MUST)."""
         self.clean_dir = test_dataset.clean_dir
         self.test_data_loader = test_dataset.create()
+
+    def run(self, test_dataset):
+        self.set_test_data_loader(test_dataset)
+        self._test_epoch()
+        self._finish()
 
     def _test_epoch(self):
         if self.processed_records > 0:
@@ -113,5 +118,5 @@ class SeganTester(BaseTester):
                 self.speech_featurizer.sample_rate
             )
 
-    def finish(self):
+    def _finish(self):
         tf.print("Finish testing model, please use script to evaluate results")

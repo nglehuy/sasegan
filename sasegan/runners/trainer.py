@@ -46,7 +46,7 @@ class SeganTrainer(BaseTrainer):
         }
 
     def save_model_weights(self):
-        self.generator.save_weights(os.path.join(self.config["outdir"], "latest.h5"))
+        self.generator.save_weights(os.path.join(self.config.outdir, "latest.h5"))
 
     def run(self):
         """Run training."""
@@ -61,15 +61,15 @@ class SeganTrainer(BaseTrainer):
 
         while not self._finished():
             self._train_epoch()
-            if self.epochs.numpy() >= self.config["l1_remove_epoch"] \
+            if self.epochs >= self.config.additional_properties["l1_remove_epoch"] \
                     and self.deactivate_l1 is False:
-                self.config["l1_lambda"] = 0.
+                self.config.additional_properties["l1_lambda"] = 0.
                 self.deactivate_l1 = True
-            if self.epochs.numpy() >= self.config["denoise_epoch"] \
+            if self.epochs >= self.config.additional_properties["denoise_epoch"] \
                     and self.deactivate_noise is False:
-                self.config["noise_std"] *= self.config["noise_decay"]
-                if self.config["noise_std"] < self.config["denoise_lbound"]:
-                    self.config["noise_std"] = 0.
+                self.config.additional_properties["noise_std"] *= self.config.additional_properties["noise_decay"]
+                if self.config.additional_properties["noise_std"] < self.config.additional_properties["denoise_lbound"]:
+                    self.config.additional_properties["noise_std"] = 0.
                     self.deactivate_noise = True
 
         self.save_checkpoint()
@@ -87,12 +87,12 @@ class SeganTrainer(BaseTrainer):
             d_real_logit = self.discriminator(
                 [clean_wavs, noisy_wavs],
                 training=True,
-                noise_std=self.config["noise_std"]
+                noise_std=self.config.additional_properties["noise_std"]
             )
             d_fake_logit = self.discriminator(
                 [g_clean_wavs, noisy_wavs],
                 training=True,
-                noise_std=self.config["noise_std"]
+                noise_std=self.config.additional_properties["noise_std"]
             )
 
             gen_tape.watch(g_clean_wavs)
@@ -100,7 +100,7 @@ class SeganTrainer(BaseTrainer):
 
             _gen_l1_loss, _gen_adv_loss = generator_loss(y_true=clean_wavs,
                                                          y_pred=g_clean_wavs,
-                                                         l1_lambda=self.config["l1_lambda"],
+                                                         l1_lambda=self.config.additional_properties["l1_lambda"],
                                                          d_fake_logit=d_fake_logit)
 
             _disc_loss = discriminator_loss(d_real_logit, d_fake_logit)
@@ -141,7 +141,7 @@ class SeganTrainer(BaseTrainer):
 
         _gen_l1_loss, _gen_adv_loss = generator_loss(y_true=clean_wavs,
                                                      y_pred=g_clean_wavs,
-                                                     l1_lambda=self.config["l1_lambda"],
+                                                     l1_lambda=self.config.additional_properties["l1_lambda"],
                                                      d_fake_logit=d_fake_logit)
 
         _disc_loss = discriminator_loss(d_real_logit, d_fake_logit)

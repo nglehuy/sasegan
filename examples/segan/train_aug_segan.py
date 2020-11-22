@@ -1,4 +1,4 @@
-# Copyright 2020 Huy Le Nguyen (@usimarit) and Huy Phan (@pquochuy)
+# Copyright 2020 Huy Le Nguyen (@usimarit)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import tensorflow as tf
 
 DEFAULT_YAML = os.path.join(os.path.abspath(os.path.dirname(__file__)), "config.yml")
 
-parser = argparse.ArgumentParser(prog="SASEGAN")
+parser = argparse.ArgumentParser(prog="SEGAN")
 
 parser.add_argument("--config", "-c", type=str, default=DEFAULT_YAML,
                     help="The file path of model configuration file")
@@ -38,7 +38,7 @@ parser.add_argument("--mxp", default=False, action="store_true",
                     help="Enable mixed precision")
 
 parser.add_argument("--nfx", default=False, action="store_true",
-                    help="Choose numpy features extractor")
+                    help="Choose numpy feature extractor")
 
 parser.add_argument("--cache", default=False, action="store_true",
                     help="Enable caching for dataset")
@@ -50,9 +50,9 @@ tf.config.optimizer.set_experimental_options({"auto_mixed_precision": args.mxp})
 strategy = setup_strategy(args.devices)
 
 from sasegan.runners.trainer import SeganTrainer
-from sasegan.datasets.train_dataset import SeganTrainDataset
+from sasegan.datasets.train_dataset import SeganAugTrainDataset
 from tensorflow_asr.configs.config import Config
-from sasegan.models.sasegan import Generator, Discriminator
+from sasegan.models.segan import Generator, Discriminator
 from sasegan.featurizers.speech_featurizer import NumpySpeechFeaturizer, TFSpeechFeaturizer
 
 config = Config(args.config, learning=True)
@@ -60,10 +60,10 @@ config = Config(args.config, learning=True)
 speech_featurizer = NumpySpeechFeaturizer(config.speech_config) if args.nfx \
     else TFSpeechFeaturizer(config.speech_config)
 
-dataset = SeganTrainDataset(
+dataset = SeganAugTrainDataset(
     stage="train", speech_featurizer=speech_featurizer,
-    clean_dir=config.learning_config.dataset_config.train_paths["clean"],
-    noisy_dir=config.learning_config.dataset_config.train_paths["noisy"],
+    clean_dir=config.learning_config.dataset_config.train_paths,
+    noises_config=config.learning_config.dataset_config.noise_config,
     cache=args.cache, shuffle=True
 )
 

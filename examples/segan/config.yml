@@ -29,9 +29,13 @@ learning_config:
   dataset_config:
     noise_config:
       noises: /mnt/Data/ML/ASR/Preprocessed/Noises/train
-    train_paths: /mnt/Data/ML/ASR/Preprocessed/Vivos/train
+    train_paths:
+      clean: /mnt/Data/ML/ASR/Preprocessed/Vivos/train
+      noisy: /mnt/Data/ML/ASR/Preprocessed/Vivos/train
     eval_paths: null
-    test_paths: /mnt/Data/ML/ASR/Preprocessed/Vivos/test
+    test_paths:
+      clean: /mnt/Data/ML/ASR/Preprocessed/Vivos/test
+      noisy: /mnt/Data/ML/ASR/Preprocessed/Vivos/test
 
   optimizer_config:
     generator:
@@ -46,13 +50,14 @@ learning_config:
   running_config:
     batch_size: 8
 
-    noise_std: 0.0
-    denoise_epoch: 5
-    noise_decay: 0.9
-    denoise_lbound: 0.0
+    additional_properties:
+      noise_std: 0.0
+      denoise_epoch: 5
+      noise_decay: 0.9
+      denoise_lbound: 0.0
 
-    l1_remove_epoch: 87
-    l1_lambda: 100.0
+      l1_remove_epoch: 87
+      l1_lambda: 100.0
 
     num_epochs: 86
     outdir: /mnt/Projects/asrk16/trained/local/segan
