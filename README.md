@@ -10,7 +10,7 @@
 </p>
 </h1>
 <h2 align="center">
-<p>Self Attention Speech Enhancement GAN in Tensorflow 2</p>
+<p>Self Attention GAN for Speech Enhancement in Tensorflow 2</p>
 </h2>
 
 <p align="center">
@@ -20,7 +20,7 @@ This is the TensorFlow 2 Version of Self-Attention Generative Adversarial Networ
 ## :yum: Supported Models
 
 - **SEGAN** (Refer to [https://github.com/santi-pdp/segan](https://github.com/santi-pdp/segan)), see [examples/segan](./examples/segan)
-- **SASEGAN** (Refer to [https://github.com/pquochuy/selfattention-segan](https://github.com/pquochuy/selfattention-segan)), see [examples/sasegan](./examples/sasegan)
+- **SASEGAN** (Refer to [https://github.com/pquochuy/sasegan](https://github.com/pquochuy/sasegan)), see [examples/sasegan](./examples/sasegan)
 
 ## Setup Environment and Datasets
 
@@ -57,8 +57,25 @@ learning_config:
     log_interval_steps: 500
 ```
 
-See [examples](./examples/) for some predefined ASR models.
+See [examples](./examples/) for some running scripts.
 
 ## References
 
-1. [https://github.com/santi-pdp/segan](https://github.com/santi-pdp/segan)
+```
+@article{phan2020sasegan,
+  title={Self-Attention Generative Adversarial Network for Speech Enhancement},
+  author={H. Phan, Hu. L. Nguyen, O. Y. Chén, P. Koch, N. Q. K. Duong, I. McLoughlin, and A. Mertins},
+  journal={arXiv preprint arXiv:2010.09132},
+  year={2020}
+}
+```
+
+1. [Speech Enhancement GAN](https://github.com/santi-pdp/segan)
+2. [Improving GANs for Speech Enhancement](https://github.com/pquochuy/idsegan)
+3. [Self Attention GAN](https://github.com/brain-research/self-attention-gan)
+
+## Contact
+
+Huy Le Nguyen
+
+Email: nlhuy.cs.16@gmail.com
