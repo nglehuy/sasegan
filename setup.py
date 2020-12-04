@@ -18,7 +18,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 requirements = [
-    "TensorFlowASR>=0.3.1",
+    "TensorFlowASR>=0.3.2",
     "tensorflow-addons>=0.10.0",
     "setuptools>=47.1.1",
     "librosa>=0.7.2",
@@ -36,7 +36,7 @@ requirements = [
 
 setuptools.setup(
     name="sasegan",
-    version="0.1.2",
+    version="0.1.3",
     author="Hu. L. Nguyen, H. Phan, O. Y. Chén, P. Koch, N. Q. K. Duong, I. McLoughlin, and A. Mertins",
     author_email="nlhuy.cs.16@gmail.com",
     description="Self Attention Speech Enhancement GAN using Tensorflow 2",
