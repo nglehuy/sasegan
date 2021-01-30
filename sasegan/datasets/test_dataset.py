@@ -26,7 +26,7 @@ class SeganAugTestDataset(SeganAugTrainDataset):
                  clean_dir: str,
                  noises_config: dict):
         super(SeganAugTestDataset, self).__init__(
-            "test", speech_featurizer, clean_dir, noises_config)
+            stage="test", speech_featurizer=speech_featurizer, clean_dir=clean_dir, noises_config=noises_config)
 
     def parse(self, clean_wav):
         noisy_wav = self.noises.augment(clean_wav)
@@ -37,8 +37,7 @@ class SeganAugTestDataset(SeganAugTrainDataset):
     def create(self):
         def _gen_data():
             for clean_wav_path in self.data_paths:
-                clean_wav = read_raw_audio(
-                    clean_wav_path, sample_rate=self.speech_config["sample_rate"])
+                clean_wav = read_raw_audio(clean_wav_path, sample_rate=self.speech_featurizer.sample_rate)
                 clean_slices, noisy_slices = self.parse(clean_wav)
                 yield clean_wav_path, clean_slices, noisy_slices
 
@@ -61,7 +60,8 @@ class SeganTestDataset(SeganTrainDataset):
                  speech_featurizer: SpeechFeaturizer,
                  clean_dir: str,
                  noisy_dir: str):
-        super(SeganTestDataset, self).__init__("test", speech_featurizer, clean_dir, noisy_dir)
+        super(SeganTestDataset, self).__init__(
+            stage="test", speech_featurizer=speech_featurizer, clean_dir=clean_dir, noisy_dir=noisy_dir)
 
     def parse(self, clean_wav, noisy_wav):
         clean_slices = self.speech_featurizer.extract(clean_wav)
@@ -71,11 +71,9 @@ class SeganTestDataset(SeganTrainDataset):
     def create(self):
         def _gen_data():
             for clean_wav_path in self.data_paths:
-                clean_wav = read_raw_audio(clean_wav_path,
-                                           sample_rate=self.speech_config["sample_rate"])
+                clean_wav = read_raw_audio(clean_wav_path, sample_rate=self.speech_featurizer.sample_rate)
                 noisy_wav_path = clean_wav_path.replace(self.clean_dir, self.noisy_dir)
-                noisy_wav = read_raw_audio(noisy_wav_path,
-                                           sample_rate=self.speech_config["sample_rate"])
+                noisy_wav = read_raw_audio(noisy_wav_path, sample_rate=self.speech_featurizer.sample_rate)
                 clean_slices, noisy_slices = self.parse(clean_wav, noisy_wav)
                 yield clean_wav_path, clean_slices, noisy_slices
 

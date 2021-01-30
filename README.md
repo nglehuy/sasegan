@@ -26,7 +26,7 @@ This is the TensorFlow 2 Version of Self-Attention Generative Adversarial Networ
 
 Install tensorflow: `pip3 install tensorflow` or `pip3 install tf-nightly` (for using tflite)
 
-Install packages: `python3 setup.py install`
+Install packages: `pip3 install .`
 
 For **setting up datasets**, see [datasets](sasegan/datasets/README.md)
 

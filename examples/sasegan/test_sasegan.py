@@ -49,7 +49,7 @@ from tensorflow_asr.configs.config import Config
 from sasegan.models.sasegan import Generator
 from sasegan.featurizers.speech_featurizer import NumpySpeechFeaturizer, TFSpeechFeaturizer
 
-config = Config(args.config, learning=True)
+config = Config(args.config)
 
 speech_featurizer = NumpySpeechFeaturizer(config.speech_config) if args.nfx \
     else TFSpeechFeaturizer(config.speech_config)
@@ -59,8 +59,8 @@ assert args.saved
 
 dataset = SeganTestDataset(
     speech_featurizer=speech_featurizer,
-    clean_dir=config.learning_config.dataset_config.test_paths["clean"],
-    noisy_dir=config.learning_config.dataset_config.test_paths["noisy"]
+    clean_dir=config.learning_config.dataset_config.clean_test_paths,
+    noisy_dir=config.learning_config.dataset_config.noisy_test_paths
 )
 
 segan_tester = SeganTester(config.learning_config.running_config)

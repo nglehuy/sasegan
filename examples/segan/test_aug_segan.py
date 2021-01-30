@@ -22,20 +22,15 @@ DEFAULT_YAML = os.path.join(os.path.abspath(os.path.dirname(__file__)), "config.
 
 parser = argparse.ArgumentParser(prog="SEGAN")
 
-parser.add_argument("--config", "-c", type=str, default=DEFAULT_YAML,
-                    help="The file path of model configuration file")
+parser.add_argument("--config", "-c", type=str, default=DEFAULT_YAML, help="The file path of model configuration file")
 
-parser.add_argument("--saved", type=str, default=None,
-                    help="Path to saved model")
+parser.add_argument("--saved", type=str, default=None, help="Path to saved model")
 
-parser.add_argument("--mxp", default=False, action="store_true",
-                    help="Enable mixed precision")
+parser.add_argument("--mxp", default=False, action="store_true", help="Enable mixed precision")
 
-parser.add_argument("--nfx", default=False, action="store_true",
-                    help="Choose numpy feature extractor")
+parser.add_argument("--nfx", default=False, action="store_true", help="Choose numpy feature extractor")
 
-parser.add_argument("--device", type=int, default=0,
-                    help="Device's id to run test on")
+parser.add_argument("--device", type=int, default=0, help="Device's id to run test on")
 
 args = parser.parse_args()
 
@@ -49,7 +44,7 @@ from tensorflow_asr.configs.config import Config
 from sasegan.models.segan import Generator
 from sasegan.featurizers.speech_featurizer import NumpySpeechFeaturizer, TFSpeechFeaturizer
 
-config = Config(args.config, learning=True)
+config = Config(args.config)
 
 speech_featurizer = NumpySpeechFeaturizer(config.speech_config) if args.nfx \
     else TFSpeechFeaturizer(config.speech_config)
@@ -59,7 +54,7 @@ assert args.saved
 
 dataset = SeganAugTestDataset(
     speech_featurizer=speech_featurizer,
-    clean_dir=config.learning_config.dataset_config.test_paths,
+    clean_dir=config.learning_config.dataset_config.clean_test_paths,
     noises_config=config.learning_config.dataset_config.noise_config
 )
 

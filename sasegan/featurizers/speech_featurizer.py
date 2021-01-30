@@ -60,13 +60,11 @@ class NumpySpeechFeaturizer(SpeechFeaturizer):
         signal = preemphasis(signal, self.preemphasis)
         n_samples = signal.shape[0]
         slices = []
-        for beg_i, end_i in zip(range(0, n_samples, self.stride),
-                                range(self.window_size, n_samples + self.stride, self.stride)):
+        for beg_i, end_i in zip(range(0, n_samples, self.stride), range(self.window_size, n_samples + self.stride, self.stride)):
             slice_ = signal[beg_i:end_i]
             if slice_.shape[0] < self.window_size:
                 if self.pad_end:
-                    slice_ = np.pad(slice_, (0, self.window_size - slice_.shape[0]),
-                                    'constant', constant_values=0.0)
+                    slice_ = np.pad(slice_, (0, self.window_size - slice_.shape[0]), 'constant', constant_values=0.0)
                 else:
                     continue
             if slice_.shape[0] == self.window_size:
@@ -83,8 +81,7 @@ class TFSpeechFeaturizer(SpeechFeaturizer):
 
     def extract(self, signal):
         signal = tf_preemphasis(signal, self.preemphasis)
-        return tf.signal.frame(signal, self.window_size, self.stride,
-                               pad_end=self.pad_end, pad_value=0)
+        return tf.signal.frame(signal, self.window_size, self.stride, pad_end=self.pad_end, pad_value=0)
 
     def iextract(self, slices):
         signal = tf.reshape(slices, [-1])

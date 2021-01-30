@@ -18,17 +18,15 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 requirements = [
-    "TensorFlowASR>=0.3.2",
+    "TensorFlowASR>=0.7.0",
     "tensorflow-addons>=0.10.0",
     "setuptools>=47.1.1",
     "librosa>=0.7.2",
     "soundfile>=0.10.3",
     "PyYAML>=5.3.1",
     "matplotlib>=3.2.1",
-    "numpy>=1.18.5,<1.19.0",
     "sox>=1.3.7",
     "nltk>=3.5",
-    "numba==0.49.1",
     "tqdm>=4.47.0",
     "colorama>=0.4.3",
     "nlpaug>=1.0.1"
